@@ -41,7 +41,4 @@ def compare_dicts(dict_a, dict_b):
                 f"length mismatch comparing strings in '{key}': {len(flat_dict_a[key])} != {len(flat_dict_b[key])}"
             )
 
-    if errors:
-        return "\n".join(errors)
-
-    return "pass"
+    return "\n".join(errors) if errors else "pass"

@@ -76,7 +76,7 @@ def process_cloud_build_event(attr, msg):
     # Most up to date timestamp for the event
     time_created = (metadata.get("finishTime") or metadata.get("startTime") or metadata.get("createTime"))
 
-    build_event = {
+    return {
         "event_type": event_type,
         "id": e_id,
         "metadata": json.dumps(metadata),
@@ -85,8 +85,6 @@ def process_cloud_build_event(attr, msg):
         "msg_id": msg["message_id"],
         "source": "cloud_build",
     }
-
-    return build_event
 
 
 if __name__ == "__main__":

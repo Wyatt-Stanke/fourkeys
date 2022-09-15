@@ -58,7 +58,7 @@ def test_unverified_signature(client):
     "event_handler.publish_to_pubsub", mock.MagicMock(return_value=True)
 )
 def test_verified_signature(client):
-    signature = "sha1=" + hmac.new(b"foo", b"Hello", sha1).hexdigest()
+    signature = f'sha1={hmac.new(b"foo", b"Hello", sha1).hexdigest()}'
     r = client.post(
         "/",
         data="Hello",
@@ -69,7 +69,7 @@ def test_verified_signature(client):
 
 @mock.patch("sources.get_secret", mock.MagicMock(return_value=b"foo"))
 def test_data_sent_to_pubsub(client):
-    signature = "sha1=" + hmac.new(b"foo", b"Hello", sha1).hexdigest()
+    signature = f'sha1={hmac.new(b"foo", b"Hello", sha1).hexdigest()}'
     event_handler.publish_to_pubsub = mock.MagicMock(return_value=True)
     headers = {
         "User-Agent": "GitHub-Hookshot",

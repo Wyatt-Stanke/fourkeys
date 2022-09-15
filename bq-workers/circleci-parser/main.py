@@ -77,7 +77,7 @@ def process_circleci_event(headers, msg):
     if event_type not in types:
         raise Exception("Unsupported CircleCI event: '%s'" % event_type)
 
-    circleci_event = {
+    return {
         "event_type": event_type,
         "id": metadata["id"],
         "metadata": json.dumps(metadata),
@@ -86,8 +86,6 @@ def process_circleci_event(headers, msg):
         "msg_id": msg["message_id"],
         "source": "circleci",
     }
-
-    return circleci_event
 
 
 if __name__ == "__main__":

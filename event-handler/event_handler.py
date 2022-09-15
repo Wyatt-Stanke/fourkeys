@@ -41,7 +41,7 @@ def index():
 
     auth_source = sources.AUTHORIZED_SOURCES[source]
     signature_sources = {**request.headers, **request.args}
-    signature = signature_sources.get(auth_source.signature, None)
+    signature = signature_sources.get(auth_source.signature)
 
     if not signature:
         abort(403, "Signature not found in request headers")
@@ -80,8 +80,7 @@ def publish_to_pubsub(source, msg, headers):
             topic_path, data=msg, headers=json.dumps(headers)
         )
 
-        exception = future.exception()
-        if exception:
+        if exception := future.exception():
             raise Exception(exception)
 
         print(f"Published message: {future.result()}")

@@ -23,10 +23,10 @@ def insert_row_into_bigquery(event):
 
     # Set up bigquery instance
     client = bigquery.Client()
-    dataset_id = "four_keys"
-    table_id = "events_raw"
-
     if is_unique(client, event["signature"]):
+        dataset_id = "four_keys"
+        table_id = "events_raw"
+
         table_ref = client.dataset(dataset_id).table(table_id)
         table = client.get_table(table_ref)
 
@@ -42,10 +42,7 @@ def insert_row_into_bigquery(event):
                 event["source"],
             )
         ]
-        bq_errors = client.insert_rows(table, row_to_insert)
-
-        # If errors, log to Stackdriver
-        if bq_errors:
+        if bq_errors := client.insert_rows(table, row_to_insert):
             entry = {
                 "severity": "WARNING",
                 "msg": "Row not inserted.",

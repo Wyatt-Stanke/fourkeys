@@ -86,54 +86,50 @@ def process_github_event(headers, msg):
 
     metadata = json.loads(base64.b64decode(msg["data"]).decode("utf-8").strip())
 
-    if event_type == "push":
-        time_created = metadata["head_commit"]["timestamp"]
-        e_id = metadata["head_commit"]["id"]
-
-    if event_type == "pull_request":
-        time_created = metadata["pull_request"]["updated_at"]
-        e_id = metadata["repository"]["name"] + "/" + str(metadata["number"])
-
-    if event_type == "pull_request_review":
-        time_created = metadata["review"]["submitted_at"]
-        e_id = metadata["review"]["id"]
-
-    if event_type == "pull_request_review_comment":
-        time_created = metadata["comment"]["updated_at"]
-        e_id = metadata["comment"]["id"]
-
-    if event_type == "issues":
-        time_created = metadata["issue"]["updated_at"]
-        e_id = metadata["repository"]["name"] + "/" + str(metadata["issue"]["number"])
-
-    if event_type == "issue_comment":
-        time_created = metadata["comment"]["updated_at"]
-        e_id = metadata["comment"]["id"]
-
     if event_type == "check_run":
         time_created = (metadata["check_run"]["completed_at"] or
                         metadata["check_run"]["started_at"])
         e_id = metadata["check_run"]["id"]
 
-    if event_type == "check_suite":
+    elif event_type == "check_suite":
         time_created = (metadata["check_suite"]["updated_at"] or
                         metadata["check_suite"]["created_at"])
         e_id = metadata["check_suite"]["id"]
 
-    if event_type == "deployment_status":
+    elif event_type == "deployment_status":
         time_created = metadata["deployment_status"]["updated_at"]
         e_id = metadata["deployment_status"]["id"]
 
-    if event_type == "status":
-        time_created = metadata["updated_at"]
-        e_id = metadata["id"]
+    elif event_type == "issues":
+        time_created = metadata["issue"]["updated_at"]
+        e_id = metadata["repository"]["name"] + "/" + str(metadata["issue"]["number"])
 
-    if event_type == "release":
+    elif event_type == "pull_request":
+        time_created = metadata["pull_request"]["updated_at"]
+        e_id = metadata["repository"]["name"] + "/" + str(metadata["number"])
+
+    elif event_type == "pull_request_review":
+        time_created = metadata["review"]["submitted_at"]
+        e_id = metadata["review"]["id"]
+
+    elif event_type in ["pull_request_review_comment", "issue_comment"]:
+        time_created = metadata["comment"]["updated_at"]
+        e_id = metadata["comment"]["id"]
+
+    elif event_type == "push":
+        time_created = metadata["head_commit"]["timestamp"]
+        e_id = metadata["head_commit"]["id"]
+
+    elif event_type == "release":
         time_created = (metadata["release"]["published_at"] or
                         metadata["release"]["created_at"])
         e_id = metadata["release"]["id"]
 
-    github_event = {
+    elif event_type == "status":
+        time_created = metadata["updated_at"]
+        e_id = metadata["id"]
+
+    return {
         "event_type": event_type,
         "id": e_id,
         "metadata": json.dumps(metadata),
@@ -142,8 +138,6 @@ def process_github_event(headers, msg):
         "msg_id": msg["message_id"],
         "source": source,
     }
-
-    return github_event
 
 
 if __name__ == "__main__":

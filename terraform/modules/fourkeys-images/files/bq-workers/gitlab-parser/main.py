@@ -132,7 +132,7 @@ def process_gitlab_event(headers, msg):
     except Exception:
         pass
 
-    gitlab_event = {
+    return {
         "event_type": event_type,
         "id": e_id,
         "metadata": json.dumps(metadata),
@@ -142,8 +142,6 @@ def process_gitlab_event(headers, msg):
         "msg_id": msg["message_id"],
         "source": source,
     }
-
-    return gitlab_event
 
 
 if __name__ == "__main__":
