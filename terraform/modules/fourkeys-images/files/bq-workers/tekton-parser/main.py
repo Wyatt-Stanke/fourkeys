@@ -75,7 +75,7 @@ def process_tekton_event(headers, msg):
     if "taskRun" in cloud_event.data:
         uid = cloud_event.data["taskRun"]["metadata"]["uid"]
 
-    event = {
+    return {
         "event_type": cloud_event["type"],
         "id": uid,  # ID of the taskRun or pipelineRun
         "metadata": to_json(cloud_event).decode(),
@@ -84,8 +84,6 @@ def process_tekton_event(headers, msg):
         "msg_id": msg["message_id"],  # The pubsub message id
         "source": "tekton",
     }
-
-    return event
 
 
 if __name__ == "__main__":

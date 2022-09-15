@@ -94,10 +94,7 @@ def pagerduty_verification(signatures, body):
     except Exception as e:
         print(e)
 
-    if expected_signature in signature_list:
-        return True
-    else:
-        return False
+    return expected_signature in signature_list
 
 
 def simple_token_verification(token, body):

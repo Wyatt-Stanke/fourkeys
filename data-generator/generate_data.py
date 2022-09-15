@@ -32,7 +32,7 @@ def make_changes(num_changes, vcs, event_timespan):
     head_commit = None
     event = None
 
-    for x in range(num_changes):
+    for _ in range(num_changes):
         change_id = secrets.token_hex(20)
         unix_timestamp = time.time() - random.randrange(0, event_timespan)
         change = {
@@ -46,20 +46,20 @@ def make_changes(num_changes, vcs, event_timespan):
 
         changes.append(change)
 
-    if vcs == "gitlab":
+    if vcs == "github":
+        event = {"head_commit": head_commit, "commits": changes}
+
+    elif vcs == "gitlab":
         event = {
             "object_kind": "push",
             "checkout_sha": head_commit["id"],
             "commits": changes,
         }
-    if vcs == "github":
-        event = {"head_commit": head_commit, "commits": changes}
-
     return event
 
 
 def create_github_deploy_event(change):
-    deployment = {
+    return {
         "deployment_status": {
             "updated_at": change["timestamp"],
             "id": secrets.token_hex(20),
@@ -69,7 +69,6 @@ def create_github_deploy_event(change):
             "sha": change["id"],
         },
     }
-    return deployment
 
 
 def create_gitlab_pipeline_event(changes):
@@ -105,18 +104,17 @@ def create_gitlab_deploy_event(changes):
 
 
 def make_github_issue(root_cause):
-    event = {
+    return {
         "issue": {
             "created_at": root_cause["timestamp"],
             "updated_at": datetime.datetime.now(),
             "closed_at": datetime.datetime.now(),
             "number": random.randrange(0, 1000),
             "labels": [{"name": "Incident"}],
-            "body": "root cause: %s" % root_cause["id"],
+            "body": f'root cause: {root_cause["id"]}',
         },
         "repository": {"name": "foobar"},
     }
-    return event
 
 
 def make_gitlab_issue(changes):
@@ -132,9 +130,10 @@ def make_gitlab_issue(changes):
                     "closed_at": datetime.datetime.now(),
                     "id": random.randrange(0, 1000),
                     "labels": [{"title": "Incident"}],
-                    "description": "root cause: %s" % c["id"],
+                    "description": f'root cause: {c["id"]}',
                 },
             }
+
     return issue
 
 
@@ -145,7 +144,7 @@ def make_webhook_request(vcs, webhook_url, secret, event_type, data, token=None)
     if vcs == "github":
         signature = hmac.new(secret.encode(), data, sha1)
         request.add_header("X-Github-Event", event_type)
-        request.add_header("X-Hub-Signature", "sha1=" + signature.hexdigest())
+        request.add_header("X-Hub-Signature", f"sha1={signature.hexdigest()}")
         request.add_header("User-Agent", "GitHub-Hookshot/mock")
 
     if vcs == "gitlab":
@@ -167,10 +166,7 @@ def post_to_webhook(vcs, webhook_url, secret, event_type, data, token=None):
 
     response = urlopen(request)
 
-    if response.getcode() == 204:
-        return 1
-    else:
-        return 0
+    return 1 if response.getcode() == 204 else 0
 
 
 if __name__ == "__main__":
@@ -224,8 +220,7 @@ if __name__ == "__main__":
 
     all_changesets = []
     changes_sent = 0
-    for x in range(args.num_events):
-
+    for _ in range(args.num_events):
         # make a change set containing a random number of changes
         changeset = make_changes(
             random.randrange(1, 5),
@@ -236,14 +231,14 @@ if __name__ == "__main__":
         # Send individual changes data
         for c in changeset["commits"]:
             curr_change = None
-            if args.vc_system == "gitlab":
+            if args.vc_system == "github":
+                curr_change = {"head_commit": c, "commits": [c]}
+            elif args.vc_system == "gitlab":
                 curr_change = {
                     "object_kind": "push",
                     "checkout_sha": c["id"],
                     "commits": [c],
                 }
-            if args.vc_system == "github":
-                curr_change = {"head_commit": c, "commits": [c]}
             changes_sent += post_to_webhook(
                 args.vc_system, webhook_url, secret, "push", curr_change, token
             )
